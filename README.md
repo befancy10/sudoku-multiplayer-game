@@ -6,7 +6,7 @@
 
 **Real-time multiplayer sudoku competition game** built with Python, pygame, and TCP sockets. Multiple players compete to solve the same sudoku puzzle with live scoring and real-time updates.
 
-![Game Screenshot](C:\Users\Fancy\Documents\VSCode\General\sudoku-multiplayer-game\docs\screenshot_local_multiplayer_gameplay.jpg)
+![Game Screenshot](![screenshot_local_multiplayer_gameplay](https://github.com/user-attachments/assets/b41388bc-ed8e-49f8-80fb-6b9f512a4c0d))
 *Screenshot: Multiplayer sudoku competition in action*
 
 ##  Features
