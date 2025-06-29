@@ -1,0 +1,14 @@
+# Sudoku Multiplayer Game Requirements
+
+# Game engine
+pygame>=2.0.0
+
+# Built-in Python modules (no installation needed)
+# socket
+# threading  
+# json
+# logging
+# time
+# random
+# copy
+# sys
