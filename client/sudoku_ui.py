@@ -35,9 +35,9 @@ class SudokuUI:
         self.scoreboard_y = self.board_y
         self.scoreboard_width = 200
         
-    def draw_sudoku_board(self, puzzle, player_board, selected_cell):
+    def draw_sudoku_board(self, puzzle, player_board, cell_status, selected_cell):
         """Draw the sudoku board with current state"""
-        if not puzzle or not player_board:
+        if not puzzle or not player_board or not cell_status:
             return
         
         # Draw board background
@@ -52,12 +52,19 @@ class SudokuUI:
                 y = self.board_y + row * self.cell_size
                 cell_rect = pygame.Rect(x, y, self.cell_size, self.cell_size)
                 
+                status = cell_status[row][col]
+
+
                 # Determine cell color
                 cell_color = WHITE
                 if selected_cell and selected_cell == (row, col):
                     cell_color = YELLOW
-                elif puzzle[row][col] != 0:  # Given number
+                elif status == 'given':
                     cell_color = LIGHT_GREEN
+                elif status == 'correct':
+                    cell_color = LIGHT_BLUE
+                elif status == 'incorrect':
+                    cell_color = LIGHT_RED
                 
                 pygame.draw.rect(self.screen, cell_color, cell_rect)
                 pygame.draw.rect(self.screen, BLACK, cell_rect, 1)
@@ -65,10 +72,17 @@ class SudokuUI:
                 # Draw number if present
                 number = player_board[row][col]
                 if number != 0:
+                    if status == 'given':
+                        text_color = BLACK
+                    elif status == 'correct':
+                        text_color = BLUE
+                    elif status == 'incorrect':
+                        text_color = RED
+                    else:
+                        text_color = GRAY
                     # Color: black for given numbers, blue for player input
-                    text_color = BLACK if puzzle[row][col] != 0 else BLUE
                     text = self.font_large.render(str(number), True, text_color)
-                    text_rect = text.get_rect(center=(x + self.cell_size//2, y + self.cell_size//2))
+                    text_rect = text.get_rect(center=(x + self.cell_size // 2, y + self.cell_size // 2))
                     self.screen.blit(text, text_rect)
         
         # Draw thick lines for 3x3 boxes

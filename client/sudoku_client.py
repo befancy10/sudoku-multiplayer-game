@@ -39,6 +39,7 @@ class SudokuMultiplayerClient:
         self.player_name = ""
         self.puzzle = None
         self.player_board = None
+        self.cell_status = None  # untuk menyimpan status tiap sel
         self.scores = {}
         self.players_progress = {}
         
@@ -71,8 +72,9 @@ class SudokuMultiplayerClient:
             self.player_id = input("Enter your player ID: ").strip()
             self.player_name = input("Enter your name: ").strip()
             
+            logging.info(f"Connecting to {server_ip}:{server_port} as {self.player_name}...")
             print(f"Connecting to {server_ip}:{server_port} as {self.player_name}...")
-            
+
             self.client = ClientInterface(self.player_id, (server_ip, server_port))
             
             if self.client.connect():
@@ -109,28 +111,53 @@ class SudokuMultiplayerClient:
     def load_puzzle(self):
         """Load the sudoku puzzle from server"""
         try:
-            print("Loading puzzle...")  # DEBUG
-            response = self.client.get_puzzle()
-            print(f"Puzzle response: {response}")  # DEBUG
-            
-            if response["status"] == "OK":
-                self.puzzle = response["data"]["puzzle"]
-                # Initialize player board with the same structure
-                self.player_board = [[0 for _ in range(9)] for _ in range(9)]
-                # Copy the given numbers to player board
-                for i in range(9):
-                    for j in range(9):
-                        if self.puzzle[i][j] != 0:
-                            self.player_board[i][j] = self.puzzle[i][j]
-                logging.info("Puzzle loaded successfully")
-                print("Puzzle loaded!")  # DEBUG
+            logging.info("Loading puzzle and player board...")
+            board_response = self.client.send_command({
+                "command": "get_player_board",
+                "player_id": self.player_id,
+                "data": {}
+            })
+
+            if board_response["status"] == "OK":
+                self.player_board = board_response["data"]["board"]
+                self.cell_status = board_response["data"]["cell_status"]
+                logging.info("Player board loaded")
             else:
-                logging.error(f"Failed to load puzzle: {response['message']}")
-                self.connection_status = f"Puzzle load failed: {response['message']}"
-                
+                logging.error(f"Failed to load player board: {board_response['message']}")
+
+            puzzle_response = self.client.get_puzzle()
+            if puzzle_response["status"] == "OK":
+                self.puzzle = puzzle_response["data"]["puzzle"]
+                logging.info("Puzzle loaded")
+            else:
+                logging.error(f"Failed to load puzzle: {puzzle_response['message']}")
+            
         except Exception as e:
             logging.error(f"Error loading puzzle: {e}")
-            self.connection_status = f"Puzzle error: {str(e)}"
+
+
+        #     print("Loading puzzle...")  # DEBUG
+        #     response = self.client.get_puzzle()
+        #     print(f"Puzzle response: {response}")  # DEBUG
+            
+        #     if response["status"] == "OK":
+        #         self.puzzle = response["data"]["puzzle"]
+        #         # Initialize player board with the same structure
+        #         self.player_board = [[0 for _ in range(9)] for _ in range(9)]
+        #         # Copy the given numbers to player board
+        #         for i in range(9):
+        #             for j in range(9):
+        #                 if self.puzzle[i][j] != 0:
+        #                     self.player_board[i][j] = self.puzzle[i][j]
+        #         logging.info("Puzzle loaded successfully")
+        #         print("Puzzle loaded!")  # DEBUG
+        #     else:
+        #         logging.error(f"Failed to load puzzle: {response['message']}")
+        #         self.connection_status = f"Puzzle load failed: {response['message']}"
+                
+        # except Exception as e:
+        #     logging.error(f"Error loading puzzle: {e}")
+        #     self.connection_status = f"Puzzle error: {str(e)}"
     
     def start_update_thread(self):
         """Start background thread for updates"""
@@ -165,9 +192,9 @@ class SudokuMultiplayerClient:
     
     def handle_cell_click(self, row, col):
         """Handle clicking on a sudoku cell"""
-        if self.puzzle and self.puzzle[row][col] == 0:  # Only allow editing empty cells
-            self.selected_cell = (row, col)
-            print(f"Selected cell: ({row}, {col})")  # DEBUG
+        if self.puzzle and self.puzzle[row][col] == 0:
+            if self.cell_status and self.cell_status[row][col] != 'correct':
+                self.selected_cell = (row, col)
     
     def handle_number_input(self, number):
         """Handle number input for selected cell"""
@@ -183,8 +210,10 @@ class SudokuMultiplayerClient:
                     
                     if response and response["status"] == "OK":
                         result = response["data"]
+                        self.cell_status = result.get("cell_status", self.cell_status)
+                        self.player_board = result.get("board", self.player_board)
+                        self.player_board[row][col] = number
                         if result["correct"]:
-                            self.player_board[row][col] = number
                             logging.info(f"Correct! +10 points. Cell ({row},{col}) = {number}")
                             print(f"Correct! Score: {result['new_score']}")
                         else:
@@ -247,6 +276,7 @@ class SudokuMultiplayerClient:
                 "1. Make sure server is running",
                 "2. Check server IP and port",
                 "3. Try restarting the client",
+                "4. If game is full, wait for the next game generated"
                 "",
                 "Press ESC to exit"
             ]
@@ -272,7 +302,7 @@ class SudokuMultiplayerClient:
                 
                 if self.connected and self.puzzle:
                     # Draw the game
-                    self.ui.draw_sudoku_board(self.puzzle, self.player_board, self.selected_cell)
+                    self.ui.draw_sudoku_board(self.puzzle, self.player_board, self.cell_status, self.selected_cell)
                     self.ui.draw_scores(self.scores, self.player_name)
                     self.ui.draw_players_progress(self.players_progress)
                     self.ui.draw_instructions()

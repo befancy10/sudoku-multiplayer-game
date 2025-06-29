@@ -102,6 +102,8 @@ class ProcessTheClient(threading.Thread):
                 return self.handle_get_game_state()
             elif command == "get_player_progress":
                 return self.handle_get_player_progress()
+            elif command == "get_player_board":
+                return self.handle_get_player_board(command_data)
             else:
                 return json.dumps({
                     "status": "ERROR",
@@ -237,6 +239,18 @@ class ProcessTheClient(threading.Thread):
             return json.dumps({
                 "status": "ERROR",
                 "message": f"Progress error: {str(e)}",
+                "data": {}
+            })
+        
+    def handle_get_player_board(self, command_data):
+        try:
+            player_id = command_data.get("player_id")
+            response = self.protocol_handler.handle_get_player_board(player_id, {})
+            return json.dumps(response)
+        except Exception as e:
+            return json.dumps({
+                "status": "ERROR",
+                "message": f"Get player board error: {str(e)}",
                 "data": {}
             })
 

@@ -12,6 +12,7 @@ class ProtocolHandler:
             "get_scores": self.handle_get_scores,
             "get_game_state": self.handle_get_game_state,
             "get_player_progress": self.handle_get_player_progress,
+            "get_player_board": self.handle_get_player_board,  # NEW: Get board with status
             "leave_game": self.handle_leave_game,
             "reset_game": self.handle_reset_game,
             "get_solution": self.handle_get_solution  # Admin command
@@ -100,8 +101,28 @@ class ProtocolHandler:
             logging.error(f"Error in get_puzzle: {e}")
             return self.error_response("Failed to get puzzle")
     
+    def handle_get_player_board(self, player_id, data):
+        """Handle get player board with status - NEW COMMAND"""
+        try:
+            if not player_id:
+                return self.error_response("Missing player ID")
+            
+            board, cell_status = self.game_manager.get_player_board_with_status(player_id)
+            
+            if board is None:
+                return self.error_response("Player not found")
+            
+            return self.success_response("Player board retrieved", {
+                "board": board,
+                "cell_status": cell_status
+            })
+            
+        except Exception as e:
+            logging.error(f"Error in get_player_board: {e}")
+            return self.error_response("Failed to get player board")
+    
     def handle_submit_answer(self, player_id, data):
-        """Handle submit answer request"""
+        """Handle submit answer request - UPDATED"""
         try:
             if not player_id:
                 return self.error_response("Missing player ID")
@@ -130,6 +151,11 @@ class ProtocolHandler:
             )
             
             if success:
+                # Add updated board and status to response
+                board, cell_status = self.game_manager.get_player_board_with_status(player_id)
+                result["board"] = board
+                result["cell_status"] = cell_status
+                
                 return self.success_response(message, result)
             else:
                 return self.error_response(message, result)

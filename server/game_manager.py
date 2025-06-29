@@ -59,7 +59,6 @@ class GameManager:
     
     def add_player(self, player_id, player_name):
         """Add a new player to the game - FIXED VERSION"""
-        # SIMPLIFIED LOCKING - Avoid complex nested locks
         try:
             # Quick validation without lock first
             if len(self.players) >= self.max_players:
@@ -77,7 +76,7 @@ class GameManager:
                 if player_id in self.players:
                     return False, "Player ID already exists"
                 
-                # Create player info - SIMPLIFIED
+                # Create player info with cell status tracking
                 player_info = {
                     "player_id": player_id,
                     "name": player_name,
@@ -85,6 +84,7 @@ class GameManager:
                     "join_time": time.time(),
                     "moves": [],
                     "board": self.get_initial_board(),
+                    "cell_status": self.get_initial_cell_status(),  # NEW: Track correct/incorrect/empty
                     "filled_cells": 0,
                     "correct_answers": 0,
                     "wrong_answers": 0
@@ -106,6 +106,19 @@ class GameManager:
         except Exception as e:
             logging.error(f"Error in add_player: {e}")
             return False, f"Error adding player: {str(e)}"
+    
+    def get_initial_cell_status(self):
+        """Initialize cell status matrix"""
+        # Status: 'given' (original puzzle), 'correct' (correct answer), 'incorrect' (wrong answer), 'empty'
+        status = [['empty' for _ in range(9)] for _ in range(9)]
+        
+        # Mark given numbers as 'given'
+        for i in range(9):
+            for j in range(9):
+                if self.current_puzzle[i][j] != 0:
+                    status[i][j] = 'given'
+        
+        return status
     
     def remove_player(self, player_id):
         """Remove a player from the game"""
@@ -135,7 +148,7 @@ class GameManager:
         return [row[:] for row in self.current_puzzle]
     
     def submit_answer(self, player_id, row, col, value):
-        """Process a player's answer submission"""
+        """Process a player's answer submission - UPDATED FOR NEW BEHAVIOR"""
         try:
             with self.lock:
                 if player_id not in self.players:
@@ -150,37 +163,75 @@ class GameManager:
                 if not (0 <= row < 9 and 0 <= col < 9):
                     return False, "Invalid coordinates", {}
                 
-                # Check if cell is modifiable (should be empty in original puzzle)
+                # Check if cell is modifiable (cannot modify given numbers)
                 if self.current_puzzle[row][col] != 0:
                     return False, "Cannot modify given numbers", {}
+                
+                # NEW: Check if cell is already correct (locked)
+                if player["cell_status"][row][col] == 'correct':
+                    return False, "Cannot modify correct answers", {}
                 
                 # Check if value is valid (1-9 or 0 for clear)
                 if not (0 <= value <= 9):
                     return False, "Invalid value", {}
                 
-                # Check if correct answer
-                is_correct = (value == self.solution[row][col]) if value != 0 else True
+                # Handle clearing cell
+                if value == 0:
+                    old_status = player["cell_status"][row][col]
+                    if old_status == 'incorrect':
+                        player["board"][row][col] = 0
+                        player["cell_status"][row][col] = 'empty'
+                        player["filled_cells"] -= 1
+                    elif old_status == 'empty':
+                        # Already empty, no change
+                        pass
+                    # Note: 'correct' cells cannot be cleared (blocked above)
+                    
+                    result = {
+                        "correct": True,  # Clearing is always "successful"
+                        "score_change": 0,
+                        "new_score": player["score"],
+                        "game_complete": False,
+                        "cell_status": player["cell_status"],
+                        "board": player["board"]
+                    }
+                    
+                    # Record move
+                    move = {
+                        "timestamp": time.time(),
+                        "row": row,
+                        "col": col,
+                        "value": value,
+                        "correct": True,
+                        "score_change": 0
+                    }
+                    player["moves"].append(move)
+                    
+                    return True, "Cell cleared", result
                 
-                # Update player's board
-                old_value = player["board"][row][col]
+                # Check if correct answer
+                is_correct = (value == self.solution[row][col])
+                
+                # Update player's board and status
+                old_status = player["cell_status"][row][col]
                 player["board"][row][col] = value
                 
                 # Calculate score change
                 score_change = 0
-                if value == 0:  # Clearing cell
-                    if old_value != 0:
-                        player["filled_cells"] -= 1
-                else:  # Setting value
-                    if is_correct:
-                        score_change = 10
-                        player["correct_answers"] += 1
-                        if old_value == 0:
-                            player["filled_cells"] += 1
-                    else:
-                        score_change = -10
-                        player["wrong_answers"] += 1
-                        # Remove incorrect value
-                        player["board"][row][col] = 0
+                if is_correct:
+                    score_change = 10
+                    player["correct_answers"] += 1
+                    player["cell_status"][row][col] = 'correct'  # Lock this cell
+                    if old_status == 'empty':
+                        player["filled_cells"] += 1
+                    # If was incorrect before, still count as filled
+                else:
+                    score_change = -10
+                    player["wrong_answers"] += 1
+                    player["cell_status"][row][col] = 'incorrect'  # Mark as incorrect but keep value
+                    if old_status == 'empty':
+                        player["filled_cells"] += 1
+                    # Keep the wrong value displayed in red
                 
                 # Update score
                 player["score"] += score_change
@@ -205,7 +256,9 @@ class GameManager:
                     "correct": is_correct,
                     "score_change": score_change,
                     "new_score": player["score"],
-                    "game_complete": self.game_state == "finished"
+                    "game_complete": self.game_state == "finished",
+                    # "cell_status": "correct" if is_correct else "incorrect"
+                    "cell_status": player["cell_status"]
                 }
                 
                 return True, "Answer processed", result
@@ -213,6 +266,19 @@ class GameManager:
         except Exception as e:
             logging.error(f"Error in submit_answer: {e}")
             return False, f"Error processing answer: {str(e)}", {}
+    
+    def get_player_board_with_status(self, player_id):
+        """Get player's board with cell status information"""
+        try:
+            with self.lock:
+                if player_id not in self.players:
+                    return None, None
+                
+                player = self.players[player_id]
+                return player["board"], player["cell_status"]
+        except Exception as e:
+            logging.error(f"Error getting player board: {e}")
+            return None, None
     
     def check_game_completion(self):
         """Check if any player has completed the puzzle"""
@@ -345,6 +411,7 @@ class GameManager:
                     player["score"] = 0
                     player["moves"] = []
                     player["board"] = self.get_initial_board()
+                    player["cell_status"] = self.get_initial_cell_status()
                     player["filled_cells"] = 0
                     player["correct_answers"] = 0
                     player["wrong_answers"] = 0
