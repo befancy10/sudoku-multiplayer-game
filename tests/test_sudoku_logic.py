@@ -18,9 +18,9 @@ try:
     from server.sudoku_generator import SudokuGenerator
     from server.game_manager import GameManager
     from server.protocol_handler import ProtocolHandler
-    print("✅ All imports successful!")
+    print(" All imports successful!")
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f" Import error: {e}")
     print("Available modules in path:")
     for path in sys.path[:5]:
         if os.path.exists(path):
@@ -46,10 +46,10 @@ class TestSudokuGenerator:
             assert all(len(row) == 9 for row in puzzle), "All puzzle rows should have 9 columns"
             assert all(len(row) == 9 for row in solution), "All solution rows should have 9 columns"
             
-            print("✅ Basic puzzle generation test: PASSED")
+            print(" Basic puzzle generation test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Basic puzzle generation test: FAILED - {e}")
+            print(f" Basic puzzle generation test: FAILED - {e}")
             return False
     
     def test_puzzle_difficulty_levels(self):
@@ -67,10 +67,10 @@ class TestSudokuGenerator:
                 assert empty_cells > 0, f"Puzzle should have empty cells for {difficulty}"
                 assert empty_cells < 81, f"Puzzle should not be completely empty for {difficulty}"
                 
-            print("✅ Difficulty levels test: PASSED")
+            print(" Difficulty levels test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Difficulty levels test: FAILED - {e}")
+            print(f" Difficulty levels test: FAILED - {e}")
             return False
     
     def test_solution_validity(self):
@@ -88,10 +88,10 @@ class TestSudokuGenerator:
                     if puzzle[i][j] != 0:
                         assert puzzle[i][j] == solution[i][j], f"Puzzle cell ({i},{j}) should match solution"
             
-            print("✅ Solution validity test: PASSED")
+            print(" Solution validity test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Solution validity test: FAILED - {e}")
+            print(f" Solution validity test: FAILED - {e}")
             return False
     
     def test_is_safe_method(self):
@@ -110,10 +110,10 @@ class TestSudokuGenerator:
             assert not self.generator.is_safe(2, 0, 3), "Should detect column conflict"
             assert self.generator.is_safe(2, 0, 7), "Should allow different number in same column"
             
-            print("✅ is_safe method test: PASSED")
+            print(" is_safe method test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ is_safe method test: FAILED - {e}")
+            print(f" is_safe method test: FAILED - {e}")
             return False
 
 class TestGameManager:
@@ -133,10 +133,10 @@ class TestGameManager:
             assert self.game_manager.players["player1"]["name"] == "Alice", "Player name should match"
             assert self.game_manager.players["player1"]["score"] == 0, "Initial score should be 0"
             
-            print("✅ Add player success test: PASSED")
+            print(" Add player success test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Add player success test: FAILED - {e}")
+            print(f" Add player success test: FAILED - {e}")
             return False
     
     def test_add_player_duplicate(self):
@@ -151,10 +151,10 @@ class TestGameManager:
             assert success is False, "Duplicate player addition should fail"
             assert "already exists" in message.lower(), "Error message should mention 'already exists'"
             
-            print("✅ Add duplicate player test: PASSED")
+            print(" Add duplicate player test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Add duplicate player test: FAILED - {e}")
+            print(f" Add duplicate player test: FAILED - {e}")
             return False
     
     def test_remove_player(self):
@@ -168,10 +168,10 @@ class TestGameManager:
             assert result is True, "Player removal should succeed"
             assert "player1" not in self.game_manager.players, "Player should be removed"
             
-            print("✅ Remove player test: PASSED")
+            print(" Remove player test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Remove player test: FAILED - {e}")
+            print(f" Remove player test: FAILED - {e}")
             return False
     
     def test_get_scores(self):
@@ -194,10 +194,10 @@ class TestGameManager:
             assert scores["player1"]["name"] == "Alice", "Player1 name should be Alice"
             assert scores["player2"]["name"] == "Bob", "Player2 name should be Bob"
             
-            print("✅ Get scores test: PASSED")
+            print(" Get scores test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Get scores test: FAILED - {e}")
+            print(f" Get scores test: FAILED - {e}")
             return False
 
 class TestProtocolHandler:
@@ -224,10 +224,10 @@ class TestProtocolHandler:
             assert response["data"]["player_id"] == "player1", "Response should contain correct player_id"
             assert response["data"]["player_name"] == "Alice", "Response should contain correct player_name"
             
-            print("✅ Join game success test: PASSED")
+            print(" Join game success test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Join game success test: FAILED - {e}")
+            print(f" Join game success test: FAILED - {e}")
             return False
     
     def test_handle_unknown_command(self):
@@ -244,10 +244,10 @@ class TestProtocolHandler:
             assert response["status"] == "ERROR", "Unknown command should return error"
             assert "unknown command" in response["message"].lower(), "Error message should mention unknown command"
             
-            print("✅ Unknown command test: PASSED")
+            print(" Unknown command test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Unknown command test: FAILED - {e}")
+            print(f" Unknown command test: FAILED - {e}")
             return False
     
     def test_response_format(self):
@@ -267,23 +267,23 @@ class TestProtocolHandler:
             assert response["status"] in ["OK", "ERROR"], "Status should be OK or ERROR"
             assert isinstance(response["message"], str), "Message should be string"
             
-            print("✅ Response format test: PASSED")
+            print(" Response format test: PASSED")
             return True
         except Exception as e:
-            print(f"❌ Response format test: FAILED - {e}")
+            print(f" Response format test: FAILED - {e}")
             return False
 
 def run_all_tests():
     """Run all tests manually"""
     print("=" * 60)
-    print("🧪 SUDOKU MULTIPLAYER GAME - COMPREHENSIVE TESTING")
+    print(" SUDOKU MULTIPLAYER GAME - COMPREHENSIVE TESTING")
     print("=" * 60)
     
     total_tests = 0
     passed_tests = 0
     
     # Test SudokuGenerator
-    print("\n📊 Testing SudokuGenerator...")
+    print("\n Testing SudokuGenerator...")
     print("-" * 40)
     generator_tests = TestSudokuGenerator()
     generator_tests.setup_method()
@@ -301,10 +301,10 @@ def run_all_tests():
             if test():
                 passed_tests += 1
         except Exception as e:
-            print(f"❌ {test.__name__}: EXCEPTION - {e}")
+            print(f" {test.__name__}: EXCEPTION - {e}")
     
     # Test GameManager
-    print(f"\n🎮 Testing GameManager...")
+    print(f"\n Testing GameManager...")
     print("-" * 40)
     manager_tests = TestGameManager()
     manager_tests.setup_method()
@@ -322,7 +322,7 @@ def run_all_tests():
             if test():
                 passed_tests += 1
         except Exception as e:
-            print(f"❌ {test.__name__}: EXCEPTION - {e}")
+            print(f" {test.__name__}: EXCEPTION - {e}")
     
     # Test ProtocolHandler
     print(f"\n📡 Testing ProtocolHandler...")
@@ -342,11 +342,11 @@ def run_all_tests():
             if test():
                 passed_tests += 1
         except Exception as e:
-            print(f"❌ {test.__name__}: EXCEPTION - {e}")
+            print(f" {test.__name__}: EXCEPTION - {e}")
     
     # Summary
     print("\n" + "=" * 60)
-    print("📋 TEST SUMMARY")
+    print(" TEST SUMMARY")
     print("=" * 60)
     print(f"Total Tests: {total_tests}")
     print(f"Passed: {passed_tests}")
@@ -354,12 +354,12 @@ def run_all_tests():
     print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
     
     if passed_tests == total_tests:
-        print("🎉 ALL TESTS PASSED! 🎉")
-        print("✅ Code quality: EXCELLENT")
-        print("✅ Ready for production!")
+        print(" ALL TESTS PASSED! ")
+        print(" Code quality: EXCELLENT")
+        print(" Ready for production!")
     else:
-        print(f"⚠️ {total_tests - passed_tests} tests failed")
-        print("🔧 Review failed tests and fix issues")
+        print(f" {total_tests - passed_tests} tests failed")
+        print(" Review failed tests and fix issues")
     
     print("=" * 60)
 

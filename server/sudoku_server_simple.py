@@ -16,9 +16,9 @@ import traceback
 try:
     from game_manager import GameManager
     from protocol_handler import ProtocolHandler
-    print("✅ Game components imported successfully")
+    print(" Game components imported successfully")
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f" Import error: {e}")
     print("Make sure game_manager.py and protocol_handler.py are in the server/ directory")
     sys.exit(1)
 
@@ -270,9 +270,9 @@ class SimpleServer:
         try:
             self.game_manager = GameManager(max_players)
             self.protocol_handler = ProtocolHandler(self.game_manager)
-            print("✅ Game components initialized")
+            print(" Game components initialized")
         except Exception as e:
-            print(f"❌ Game component initialization failed: {e}")
+            print(f" Game component initialization failed: {e}")
             raise
 
     def start(self):
@@ -284,7 +284,7 @@ class SimpleServer:
             self.socket.listen(10)
             
             self.running = True
-            print(f"🎮 Sudoku Server STARTED on {self.host}:{self.port}")
+            print(f" Sudoku Server STARTED on {self.host}:{self.port}")
             print(f"Max players: {self.max_players}")
             print("Waiting for clients... (Ctrl+C to stop)")
             
