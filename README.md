@@ -1,8 +1,7 @@
 #  Sudoku Multiplayer Game
 
-[![Python 3.8+]](https://www.python.org/downloads/)
-[![pygame]](https://pygame.org/)
-[![License: MIT]](https://opensource.org/licenses/MIT)
+[[Python 3.8+]](https://www.python.org/downloads/)
+[[pygame]](https://pygame.org/)
 
 **Real-time multiplayer sudoku competition game** built with Python, pygame, and TCP sockets. Multiple players compete to solve the same sudoku puzzle with live scoring and real-time updates.
 
