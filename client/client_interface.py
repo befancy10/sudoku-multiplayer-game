@@ -11,8 +11,8 @@ class ClientInterface:
         self.connected = False
         self.socket = None
         
+    # Connect to the server
     def connect(self):
-        """Connect to the server"""
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect(self.server_address)
@@ -23,16 +23,16 @@ class ClientInterface:
             logging.error(f"Failed to connect to server: {e}")
             return False
     
+    # Disconnect from the server
     def disconnect(self):
-        """Disconnect from the server"""
         if self.socket:
             self.leave_game()
             self.socket.close()
             self.connected = False
             logging.info("Disconnected from server")
     
+    # Send command to server and get response
     def send_command(self, command_data):
-        """Send command to server and get response"""
         if not self.connected:
             return {"status": "ERROR", "message": "Not connected to server"}
         
@@ -60,8 +60,8 @@ class ClientInterface:
             logging.error(f"Error during command sending: {e}")
             return {"status": "ERROR", "message": str(e)}
     
+    # Join the game with player name
     def join_game(self, player_name):
-        """Join the game with player name"""
         command = {
             "command": "join_game",
             "player_id": self.player_id,
@@ -69,8 +69,8 @@ class ClientInterface:
         }
         return self.send_command(command)
     
+    # Get the current sudoku puzzle
     def get_puzzle(self):
-        """Get the current sudoku puzzle"""
         command = {
             "command": "get_puzzle",
             "player_id": self.player_id,
@@ -78,8 +78,8 @@ class ClientInterface:
         }
         return self.send_command(command)
     
+    # Submit an answer for a cell
     def submit_answer(self, row, col, value):
-        """Submit an answer for a cell"""
         command = {
             "command": "submit_answer",
             "player_id": self.player_id,
@@ -91,8 +91,8 @@ class ClientInterface:
         }
         return self.send_command(command)
     
+    # Get all player scores
     def get_scores(self):
-        """Get all player scores"""
         command = {
             "command": "get_scores",
             "player_id": self.player_id,
@@ -100,8 +100,8 @@ class ClientInterface:
         }
         return self.send_command(command)
     
+    # Get current game state
     def get_game_state(self):
-        """Get current game state"""
         command = {
             "command": "get_game_state",
             "player_id": self.player_id,
@@ -109,8 +109,8 @@ class ClientInterface:
         }
         return self.send_command(command)
     
+    # Get all players' progress on the board
     def get_player_progress(self):
-        """Get all players' progress on the board"""
         command = {
             "command": "get_player_progress",
             "player_id": self.player_id,
@@ -118,8 +118,17 @@ class ClientInterface:
         }
         return self.send_command(command)
     
+    # Get current ranking information
+    def get_current_ranking(self):
+        command = {
+            "command": "get_current_ranking",
+            "player_id": self.player_id,
+            "data": {}
+        }
+        return self.send_command(command)
+    
+    # Leave the current game
     def leave_game(self):
-        """Leave the current game"""
         command = {
             "command": "leave_game",
             "player_id": self.player_id,

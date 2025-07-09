@@ -305,7 +305,7 @@ class SimpleServer:
             while self.running:
                 try:
                     conn, addr = self.socket.accept()
-                    print(f"🔗 New connection: {addr}")
+                    print(f"!!! New connection: {addr} !!!")
                     
                     # Create client handler
                     client = ProcessTheClient(conn, addr, self.game_manager, self.protocol_handler)
