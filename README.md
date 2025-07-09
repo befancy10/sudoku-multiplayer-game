@@ -67,6 +67,10 @@ ifconfig          # Linux/macOS
 cd server
 python sudoku_server_simple.py
 
+or
+
+python server_thread_http.py
+
 # 3. Configuration:
 Server host: 0.0.0.0        # Bind to all interfaces
 Server port: 55555          # Default port
